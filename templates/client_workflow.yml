@@ -30,17 +30,20 @@ jobs:
       - name: Checkout client repository
         uses: actions/checkout@v4
 
+      - name: Prepare pip cache manifest
+        run: printf 'edge-tts>=7.0.0,<8.0.0\nPillow>=10.0.0,<12.0.0\n' > .relaymind-requirements.txt
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: pip
-          cache-dependency-path: requirements.txt
+          cache-dependency-path: .relaymind-requirements.txt
 
       - name: Install runtime and ffmpeg
         run: |
           python -m pip install --upgrade pip
-          python -m pip install edge-tts Pillow
+          python -m pip install -r .relaymind-requirements.txt
           if ! command -v ffmpeg >/dev/null 2>&1; then
             sudo apt-get update -qq
             sudo apt-get install -y -qq ffmpeg
