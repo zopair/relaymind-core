@@ -9,6 +9,7 @@ import urllib.request
 from pathlib import Path
 
 from PIL import Image, ImageDraw
+from engine.resolver import alternatives_for
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "output"
@@ -51,6 +52,8 @@ def _image(prompt, path, index):
         except Exception as exc:
             print(f"[image] scene {index + 1} attempt {attempt + 1}: {type(exc).__name__}")
             time.sleep(1)
+    # Discover maintained free libraries for diagnostics; never install unreviewed code.
+    print("[resolver] image alternatives:", alternatives_for("images"))
     _fallback_image(path, index, prompt)
     return "pillow_fallback"
 
@@ -66,6 +69,7 @@ def _voice(script, lang, target):
             return voice
     except Exception as exc:
         print(f"[tts] edge-tts unavailable: {type(exc).__name__}")
+    print("[resolver] TTS alternatives:", alternatives_for("tts"))
     # Local eSpeak is a free offline fallback when installed on the runner.
     espeak = shutil.which("espeak-ng") or shutil.which("espeak")
     if espeak:
@@ -82,7 +86,20 @@ def _voice(script, lang, target):
     return "silent_fallback"
 
 
-def _captions(script, target):
+def _duration(path):
+    probe = shutil.which("ffprobe")
+    if not probe:
+        return 20.0
+    try:
+        result = subprocess.run([probe, "-v", "error", "-show_entries", "format=duration",
+                                 "-of", "default=noprint_wrappers=1:nokey=1", str(path)],
+                                capture_output=True, text=True, timeout=6, check=True)
+        return max(5.0, min(float(result.stdout.strip()), 55.0))
+    except (ValueError, subprocess.SubprocessError):
+        return 20.0
+
+
+def _captions(script, target, duration):
     sentences = [x.strip() for x in script.replace("؟", "؟|").replace("!", "!|").replace(".", ".|").split("|") if x.strip()]
     sentences = sentences[:24] or [script]
     def stamp(sec):
@@ -105,10 +122,12 @@ def render_video(brief):
         sources.append(_image(prompt, path, i))
     audio = OUTPUT / "voiceover.mp3"
     voice = _voice(brief["narration_script"], brief["language"], audio)
+    duration = _duration(audio)
     captions = OUTPUT / "captions.srt"
-    _captions(brief["narration_script"], captions)
+    _captions(brief["narration_script"], captions, duration)
+    per_scene = duration / 4
     concat = OUTPUT / "scenes.txt"
-    concat.write_text("".join(f"file '{(OUTPUT / f'scene_{i:02}.jpg').as_posix()}'\nduration 5\n"
+    concat.write_text("".join(f"file '{(OUTPUT / f'scene_{i:02}.jpg').as_posix()}'\nduration {per_scene:.3f}\n"
                               for i in range(1, 5)) +
                       f"file '{(OUTPUT / 'scene_04.jpg').as_posix()}'\n", encoding="utf-8")
     subtitle = str(captions).replace("\\", "/").replace(":", "\\:")
@@ -118,9 +137,9 @@ def render_video(brief):
     final = OUTPUT / "final_short.mp4"
     subprocess.run([ffmpeg, "-y", "-hide_banner", "-loglevel", "error", "-f", "concat",
                     "-safe", "0", "-i", str(concat), "-i", str(audio), "-vf", vf,
-                    "-t", "20", "-r", "25", "-c:v", "libx264", "-preset", "ultrafast",
+                    "-t", f"{duration:.2f}", "-r", "25", "-c:v", "libx264", "-preset", "ultrafast",
                     "-crf", "27", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "128k",
                     "-shortest", "-movflags", "+faststart", str(final)],
                    timeout=95, check=True)
     return {"video": str(final), "voice": voice, "image_sources": sources,
-            "duration_seconds": 20, "resolution": "1080x1920"}
+            "duration_seconds": round(duration, 2), "resolution": "1080x1920"}
