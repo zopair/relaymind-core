@@ -107,7 +107,7 @@ def _captions(script, target, duration):
         return f"{ms//3600000:02}:{(ms//60000)%60:02}:{(ms//1000)%60:02},{ms%1000:03}"
     count = len(sentences)
     target.write_text("\n\n".join(
-        f"{i+1}\n{stamp(i*20/count)} --> {stamp((i+1)*20/count)}\n{s}"
+        f"{i+1}\n{stamp(i*duration/count)} --> {stamp((i+1)*duration/count)}\n{s}"
         for i, s in enumerate(sentences)), encoding="utf-8")
 
 
@@ -131,8 +131,9 @@ def render_video(brief):
                               for i in range(1, 5)) +
                       f"file '{(OUTPUT / 'scene_04.jpg').as_posix()}'\n", encoding="utf-8")
     subtitle = str(captions).replace("\\", "/").replace(":", "\\:")
+    frames_per_scene = max(25, round(per_scene * 25))
     vf = (f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},"
-          f"zoompan=z='min(zoom+0.0008,1.08)':d=1:s={W}x{H}:fps=25,"
+          f"zoompan=z='min(zoom+0.0008,1.08)':d={frames_per_scene}:s={W}x{H}:fps=25,"
           f"subtitles='{subtitle}':force_style='FontName=DejaVu Sans,FontSize=22,Outline=2,Shadow=1,Alignment=2,MarginV=100'")
     final = OUTPUT / "final_short.mp4"
     subprocess.run([ffmpeg, "-y", "-hide_banner", "-loglevel", "error", "-f", "concat",
