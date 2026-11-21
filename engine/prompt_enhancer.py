@@ -56,13 +56,25 @@ def _normalise(obj, language, topic, source):
     visuals = obj.get("visual_prompts")
     if not isinstance(visuals, list) or len(visuals) < 4:
         raise ValueError("Four visual prompts required")
+    if language == "ar" and not re.search(r"[\\u0600-\\u06ff]", obj["title"] + obj["hook"] + obj["narration_script"]):
+        raise ValueError("local model ignored Arabic narration language")
     tags = obj.get("hashtags", [])
     if not isinstance(tags, list):
         tags = []
+    visual_prompts = []
+    for item in visuals[:4]:
+        prompt = str(item).strip()[:650]
+        if "9:16" not in prompt:
+            prompt += ", vertical 9:16 cinematic composition"
+        visual_prompts.append(prompt[:700])
+    hashtags = []
+    for tag in tags[:15]:
+        value = str(tag).replace(" ", "")[:50]
+        hashtags.append(value if value.startswith("#") else "#" + value)
     return {"title": obj["title"][:120], "hook": obj["hook"][:500],
             "narration_script": obj["narration_script"][:5000],
-            "visual_prompts": [str(x)[:700] for x in visuals[:4]],
-            "hashtags": [str(x).replace(" ", "")[:50] for x in tags[:15]],
+            "visual_prompts": visual_prompts,
+            "hashtags": hashtags,
             "language": language, "source": source, "topic": topic}
 
 
