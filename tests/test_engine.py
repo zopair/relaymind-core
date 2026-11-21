@@ -138,3 +138,32 @@ def test_local_qwen_model_is_used_without_remote_api(monkeypatch, tmp_path):
     assert brief["source"] == "local_qwen"
     assert brief["title"] == expected["title"]
     assert len(brief["visual_prompts"]) == 4
+
+
+
+def test_local_model_english_output_is_rejected_for_arabic_topic(monkeypatch, tmp_path):
+    from types import SimpleNamespace
+    from engine import prompt_enhancer
+
+    cli = tmp_path / "llama-cli"
+    model = tmp_path / "model.gguf"
+    cli.write_text("binary-placeholder")
+    model.write_bytes(b"model-placeholder")
+    monkeypatch.setenv("RELAYMIND_LLAMA_CLI", str(cli))
+    monkeypatch.setenv("RELAYMIND_MODEL_PATH", str(model))
+    english = {
+        "title": "Arabic Coffee",
+        "hook": "Discover the story of coffee.",
+        "narration_script": "Coffee has a long history.",
+        "visual_prompts": ["scene one", "scene two", "scene three", "scene four"],
+        "hashtags": ["Coffee"]
+    }
+    monkeypatch.setattr(
+        prompt_enhancer.subprocess, "run",
+        lambda *args, **kwargs: SimpleNamespace(
+            returncode=0, stdout=json.dumps(english), stderr=""
+        )
+    )
+    brief = enhance_prompt("قهوة عربية", "ar")
+    assert brief["source"] == "rule_fallback"
+    assert re.search(r"[\u0600-\u06ff]", brief["narration_script"])
