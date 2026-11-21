@@ -17,7 +17,25 @@ def detect_language(topic, requested="auto"):
 
 
 def fallback(topic, lang):
-    if lang == "ar":
+    lowered = topic.casefold()
+    is_coffee = any(word in lowered for word in ("قهوة", "قهوه", "coffee", "arabica", "قهوة عربية"))
+    if is_coffee and lang == "ar":
+        title = "رحلة القهوة العربية: من الحبة إلى الفنجان"
+        hook = "من حبة البن إلى فنجان الضيافة… كيف تُصنع القهوة العربية؟"
+        body = ("تبدأ الرحلة بحبوب البن التي تُجفف وتُحمص بعناية. "
+                "ثم تُغلى مع الهيل حتى تفوح رائحتها المميزة، وتُسكب في فناجين صغيرة "
+                "وتُقدّم مع التمر. القهوة العربية ليست مشروباً فقط؛ إنها طقس من الكرم والضيافة.")
+        cta = "احفظ الفيديو وشاركه، واكتب لنا: تفضّلها بالهيل؟"
+        tags = ["#القهوة_العربية", "#قهوة", "#الضيافة", "#تراث", "#RelayMind"]
+    elif is_coffee:
+        title = "Arabic Coffee: From Bean to Finjan"
+        hook = "How does a coffee bean become a cup of Arabic hospitality?"
+        body = ("Follow the journey from carefully dried beans to a gentle roast, "
+                "fragrant cardamom, and a traditional dallah poured into small finjan cups. "
+                "Arabic coffee is more than a drink; it is a ritual of welcome.")
+        cta = "Save this video and tell us: cardamom or no cardamom?"
+        tags = ["#ArabicCoffee", "#CoffeeCulture", "#Finjan", "#Hospitality", "#RelayMind"]
+    elif lang == "ar":
         hook = f"تخيّل أن تكتشف سر {topic} في أقل من دقيقة!"
         body = (f"كل ما تحتاج معرفته عن {topic}: ابدأ بهذه المعلومة، "
                 "لاحظ التفاصيل التي تصنع الفرق، وجرّب الخطوة بنفسك.")
@@ -29,12 +47,20 @@ def fallback(topic, lang):
                 "notice the detail that changes everything, and try it yourself.")
         cta = "Save this video, share it, and tell us what you think."
         title, tags = f"The key to understanding {topic}", ["#Shorts", "#Learn", "#Discover", "#RelayMind"]
-    visuals = [
-        f"Cinematic vertical 9:16 opening shot introducing {topic}, strong visual hook, realistic lighting, no text",
-        f"Vertical 9:16 close-up showing the key detail of {topic}, rich texture, cinematic depth, no text",
-        f"Vertical 9:16 dynamic demonstration of {topic} in action, realistic camera movement, no text",
-        f"Vertical 9:16 memorable final hero shot about {topic}, premium cinematic lighting, no text",
-    ]
+    if is_coffee:
+        visuals = [
+            "Extreme macro of ripe red coffee cherries on a green branch, lush coffee farm, warm sunrise, vertical 9:16, photorealistic",
+            "Fresh green coffee beans drying on traditional burlap mats, hands sorting beans, detailed texture, vertical 9:16",
+            "Coffee beans roasting in a shallow metal pan over gentle heat, aromatic steam and rich brown tones, vertical 9:16",
+            "Traditional Arabic brass dallah pouring coffee into tiny finjan cups beside dates on a hospitality tray, warm cinematic light, vertical 9:16"
+        ]
+    else:
+        visuals = [
+            f"Cinematic vertical 9:16 opening shot introducing {topic}, strong visual hook, realistic lighting, no text",
+            f"Vertical 9:16 close-up showing the key detail of {topic}, rich texture, cinematic depth, no text",
+            f"Vertical 9:16 dynamic demonstration of {topic} in action, realistic camera movement, no text",
+            f"Vertical 9:16 memorable final hero shot about {topic}, premium cinematic lighting, no text"
+        ]
     return {"title": title, "hook": hook, "narration_script": f"{hook} {body} {cta}",
             "visual_prompts": visuals, "hashtags": tags, "language": lang, "source": "rule_fallback"}
 
