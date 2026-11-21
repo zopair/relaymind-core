@@ -12,6 +12,7 @@ from PIL import Image, ImageDraw
 from engine.resolver import alternatives_for
 
 ROOT = Path(__file__).resolve().parents[1]
+_RESOLVER_NOTIFIED = False
 OUTPUT = ROOT / "output"
 W, H = 1080, 1920
 
@@ -37,7 +38,7 @@ def _image(prompt, path, index):
     for attempt in range(2):
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "RelayMind-Core/1.0"})
-            with urllib.request.urlopen(req, timeout=19) as res:
+            with urllib.request.urlopen(req, timeout=8) as res:
                 data = res.read(12 * 1024 * 1024 + 1)
             if len(data) > 12 * 1024 * 1024:
                 raise ValueError("image too large")
@@ -48,10 +49,14 @@ def _image(prompt, path, index):
             temp.unlink(missing_ok=True)
             return "pollinations"
         except Exception as exc:
-            print(f"[image] scene {index + 1} attempt {attempt + 1}: {type(exc).__name__}")
-            time.sleep(1)
-    # Discover maintained free libraries for diagnostics; never install unreviewed code.
-    print("[resolver] image alternatives:", alternatives_for("images"))
+            status = getattr(exc, "code", type(exc).__name__)
+            print(f"[image] scene {index + 1} attempt {attempt + 1}: {status}")
+            time.sleep(0.5)
+    # Discover alternatives once per run; never install unreviewed code.
+    global _RESOLVER_NOTIFIED
+    if not _RESOLVER_NOTIFIED:
+        print("[resolver] image alternatives:", alternatives_for("images"))
+        _RESOLVER_NOTIFIED = True
     _fallback_image(path, index, prompt)
     return "pillow_fallback"
 
@@ -62,7 +67,7 @@ def _voice(script, lang, target):
         import edge_tts
         async def run():
             await edge_tts.Communicate(script, voice).save(str(target))
-        asyncio.run(asyncio.wait_for(run(), timeout=32))
+        asyncio.run(asyncio.wait_for(run(), timeout=28))
         if target.exists() and target.stat().st_size > 1000:
             return voice
     except Exception as exc:
@@ -149,6 +154,6 @@ def render_video(brief):
                     "-t", f"{duration:.2f}", "-r", "25", "-c:v", "libx264", "-preset", "ultrafast",
                     "-crf", "27", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "128k",
                     "-shortest", "-movflags", "+faststart", str(final)],
-                   timeout=95, check=True)
+                   timeout=45, check=True)
     return {"video": str(final), "voice": voice, "image_sources": sources,
             "duration_seconds": round(duration, 2), "resolution": "1080x1920"}
