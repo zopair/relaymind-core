@@ -4,12 +4,19 @@ import os
 import urllib.parse
 import urllib.request
 import urllib.error
+from urllib.parse import urlsplit
 
 UA = "RelayMind-Core/1.0"
 
 
 def check_url(url, timeout=5):
-    req = urllib.request.Request(url, headers={"User-Agent": UA})
+    try:
+        parsed = urlsplit(url)
+        if parsed.scheme not in ("http", "https") or not parsed.netloc:
+            return False
+        req = urllib.request.Request(url, headers={"User-Agent": UA})
+    except (TypeError, ValueError):
+        return False
     try:
         with urllib.request.urlopen(req, timeout=timeout) as res:
             return 200 <= res.status < 400
