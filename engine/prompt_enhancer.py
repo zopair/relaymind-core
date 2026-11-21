@@ -13,7 +13,7 @@ def detect_language(topic, requested="auto"):
         return "ar"
     if requested in ("en", "english"):
         return "en"
-    return "ar" if re.search(r"[\\u0600-\\u06ff]", topic) else "en"
+    return "ar" if re.search(r"[\u0600-\u06ff]", topic) else "en"
 
 
 def fallback(topic, lang):
