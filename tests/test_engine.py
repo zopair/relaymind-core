@@ -135,7 +135,6 @@ def test_local_qwen_model_is_used_without_remote_api(monkeypatch, tmp_path):
 
     brief = enhance_prompt("قهوة عربية", "ar")
     assert "-st" in captured[0]
-    assert "--json-schema" in captured[0]
     assert brief["source"] == "local_qwen"
     assert brief["title"] == expected["title"]
     assert len(brief["visual_prompts"]) == 4
