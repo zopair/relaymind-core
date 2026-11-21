@@ -117,14 +117,14 @@ def test_local_qwen_model_is_used_without_remote_api(monkeypatch, tmp_path):
     monkeypatch.delenv("GITHUB_TOKEN", raising=False)
 
     expected = {
-        "title": "قهوة عربية",
-        "hook": "هل تعرف سر القهوة؟",
-        "narration_script": "هل تعرف سر القهوة؟ جرّبها اليوم.",
+        "title": "Coffee from bean to cup",
+        "hook": "Discover the journey of coffee.",
+        "narration_script": "Coffee beans are carefully roasted and brewed.",
         "visual_prompts": [
-            "مشهد 1 عمودي 9:16", "مشهد 2 عمودي 9:16",
-            "مشهد 3 عمودي 9:16", "مشهد 4 عمودي 9:16"
+            "Coffee cherries vertical 9:16", "Green beans vertical 9:16",
+            "Roasting beans vertical 9:16", "Arabic dallah vertical 9:16"
         ],
-        "hashtags": ["#قهوة", "#ريلز"]
+        "hashtags": ["#Coffee", "#ArabicCoffee"]
     }
     captured = []
     def fake_run(*args, **kwargs):
@@ -159,15 +159,8 @@ def test_local_model_english_output_is_rejected_for_arabic_topic(monkeypatch, tm
         "visual_prompts": ["scene one", "scene two", "scene three", "scene four"],
         "hashtags": ["Coffee"]
     }
-    monkeypatch.setattr(
-        prompt_enhancer.subprocess, "run",
-        lambda *args, **kwargs: SimpleNamespace(
-            returncode=0, stdout=json.dumps(english), stderr=""
-        )
-    )
-    brief = enhance_prompt("قهوة عربية", "ar")
-    assert brief["source"] == "rule_fallback"
-    assert re.search(r"[\u0600-\u06ff]", brief["narration_script"])
+    with pytest.raises(ValueError, match="ignored Arabic narration language"):
+        prompt_enhancer._normalise(english, "ar", "قهوة عربية", "local_qwen")
 
 
 def test_coffee_fallback_has_relevant_scenes_and_arabic_voiceover():
