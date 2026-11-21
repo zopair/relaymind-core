@@ -20,7 +20,6 @@ concurrency:
 
 permissions:
   contents: read
-  models: read
 
 jobs:
   generate:
@@ -61,11 +60,42 @@ jobs:
           curl --fail --silent --show-error --location --max-time 15 "$BASE/engine/resolver.py" -o engine/resolver.py
           python -m py_compile runner.py engine/*.py
 
+      - name: Cache local Qwen inference runtime
+        uses: actions/cache@v4
+        with:
+          path: .relaymind
+          key: relaymind-qwen25-05b-q4km-llama-b12244-${{ runner.os }}-${{ runner.arch }}-v1
+
+      - name: Provision verified local Qwen runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .relaymind/bin .relaymind/models
+          if ! find .relaymind/bin -type f -name llama-cli -print -quit | grep -q .; then
+            curl --fail --silent --show-error --location --max-time 60 \
+              https://github.com/ggml-org/llama.cpp/releases/download/b12244/llama-b12244-bin-ubuntu-x64.tar.gz \
+              -o /tmp/llama-runtime.tar.gz
+            echo "c1d7e7f31b5c43f3e5d44f667b4d57104217be3e5f2060320cd3735651238849  /tmp/llama-runtime.tar.gz" | sha256sum -c -
+            tar -xzf /tmp/llama-runtime.tar.gz -C .relaymind/bin
+          fi
+          MODEL=".relaymind/models/qwen2.5-0.5b-instruct-q4_k_m.gguf"
+          if [ ! -s "$MODEL" ]; then
+            curl --fail --silent --show-error --location --retry 2 --max-time 100 \
+              https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf \
+              -o "$MODEL"
+          fi
+          echo "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db  $MODEL" | sha256sum -c -
+          LLAMA_CLI="$(find .relaymind/bin -type f -name llama-cli -print -quit)"
+          test -n "$LLAMA_CLI"
+          chmod +x "$LLAMA_CLI"
+          echo "RELAYMIND_LLAMA_CLI=$PWD/$LLAMA_CLI" >> "$GITHUB_ENV"
+          echo "RELAYMIND_MODEL_PATH=$PWD/$MODEL" >> "$GITHUB_ENV"
+          echo "LD_LIBRARY_PATH=$PWD/$(dirname "$LLAMA_CLI"):${LD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
+
       - name: Generate video
         env:
           TOPIC: ${{ inputs.topic }}
           LANG: ${{ inputs.language }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TG_TOKEN: ${{ secrets.TG_TOKEN }}
           TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
           WA_PHONE: ${{ secrets.WA_PHONE }}
