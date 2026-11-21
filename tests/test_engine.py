@@ -33,6 +33,8 @@ def test_enhancer_rejects_empty_topic(monkeypatch):
 
 def test_enhancer_uses_local_fallback_without_token(monkeypatch):
     monkeypatch.delenv("GITHUB_TOKEN", raising=False)
+    monkeypatch.delenv("RELAYMIND_LLAMA_CLI", raising=False)
+    monkeypatch.delenv("RELAYMIND_MODEL_PATH", raising=False)
     brief = enhance_prompt("coffee roasting", "en")
     assert brief["source"] == "rule_fallback"
     assert len(brief["visual_prompts"]) == 4
