@@ -171,3 +171,8 @@ def test_coffee_fallback_has_relevant_scenes_and_arabic_voiceover():
     assert "dallah" in brief["visual_prompts"][3]
     assert all("9:16" in prompt for prompt in brief["visual_prompts"])
     assert all(tag.startswith("#") for tag in brief["hashtags"])
+
+
+def test_model_json_parser_accepts_markdown_fence():
+    from engine.prompt_enhancer import _parse
+    assert _parse('```json\n{"title":"ok"}\n```') == {"title": "ok"}
