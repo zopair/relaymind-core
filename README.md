@@ -72,7 +72,7 @@ A phone number alone cannot send WhatsApp messages. It requires an authorized Wh
 
 ## Proof of Concept & Enterprise Customization Readiness
 
-**Status:** 12 regression tests, offline FFmpeg rendering and live Arabic MP4 generation passed GitHub Actions. Arabic uses the deterministic enhancer and Salma neural voice. The English local Qwen path is configured but still requires a dedicated real-output quality check. Pollinations image relevance and free-tier availability are not guaranteed; the tested HTTP 402 path falls back without paid access.
+**Status:** 13 regression tests, offline FFmpeg rendering and live Arabic MP4 generation passed GitHub Actions. Arabic uses the deterministic enhancer and Salma neural voice. The English local Qwen prompt smoke test returned valid structured output; editorial quality should still be reviewed per topic. Pollinations image relevance and free-tier availability are not guaranteed; the tested HTTP 402 path falls back without paid access.
 
 **Changelog:** centralized CDN engine, multilingual prompt fallback, local Qwen English runtime, media fallbacks, resolver, Telegram delivery and manual workflow template.
 
