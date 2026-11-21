@@ -5,7 +5,7 @@ import re
 import subprocess
 from pathlib import Path
 
-MODELS = ("Qwen2.5-0.5B-Instruct-Q4_K_M",)
+MODELS = ("Qwen2.5-1.5B-Instruct-Q4_K_M",)
 
 
 def detect_language(topic, requested="auto"):
@@ -48,6 +48,8 @@ def _parse(text):
 
 
 def _normalise(obj, language, topic, source):
+    if isinstance(obj.get("narration_script"), list):
+        obj["narration_script"] = " ".join(str(part).strip() for part in obj["narration_script"] if str(part).strip())
     if not all(isinstance(obj.get(k), str) and obj[k].strip()
                for k in ("title", "hook", "narration_script")):
         raise ValueError("Missing text fields")
@@ -73,14 +75,14 @@ def _local_model(topic, language):
               "title, hook, narration_script, visual_prompts, hashtags. Use the requested language. "
               "Write a powerful first-two-second hook, useful body and natural CTA. "
               "Return exactly four cinematic vertical 9:16 scene prompts, no text or logos. "
-              "Avoid fabricated facts. Keep narration concise.")
+              "Avoid fabricated facts. Keep narration under 65 words. Keep each scene prompt under 20 words. Return 4-6 relevant hashtags.")
     prompt = (f"Create a short-form video package in {language} for this idea: {topic}. "
               "Return ONLY one JSON object. It must have exactly these keys: title, hook, "
               "narration_script, visual_prompts, hashtags. visual_prompts must contain exactly "
               "four strings describing cinematic vertical 9:16 scenes. hashtags must be an array "
               "of strings. Do not add markdown or explanations.")
     result = subprocess.run(
-        [cli, "-m", model, "--system-prompt", system, "-p", prompt, "-n", "480",
+        [cli, "-m", model, "--system-prompt", system, "-p", prompt, "-n", "600",
          "--temp", "0.65", "--top-p", "0.85", "--ctx-size", "4096", "--threads", "4",
          "--no-display-prompt", "--simple-io", "--no-show-timings", "--no-warmup", "-st"],
         capture_output=True, text=True, timeout=50, check=False)
