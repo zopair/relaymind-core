@@ -99,7 +99,7 @@ def _local_model(topic, language):
     try:
         parsed = _parse(result.stdout)
     except ValueError as exc:
-        print(f"[prompt] local Qwen returned invalid JSON: {exc}; output={result.stdout[:500]!r}")
+        print(f"[prompt] local Qwen returned invalid JSON: {exc}; stdout_tail={result.stdout[-2200:]!r}; stderr_tail={result.stderr[-800:]!r}")
         raise
     return _normalise(parsed, language, topic, "local_qwen")
 
