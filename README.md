@@ -1,8 +1,8 @@
 # RelayMind Core
 
-![CDN](https://img.shields.io/badge/architecture-CDN--first-111827) ![Python](https://img.shields.io/badge/python-3.11-blue) ![Cost](https://img.shields.io/badge/stack-free%20tiers%20%2B%20open%20source-success)
+![CDN](https://img.shields.io/badge/architecture-CDN--first-111827) ![Python](https://img.shields.io/badge/python-3.11-blue) ![Cost](https://img.shields.io/badge/stack-free%20and%20open%20source-success)
 
-Centralized engine for turning a topic into a vertical short video. Client repositories download the engine through jsDelivr and run it on their own GitHub Actions runners. The local model runtime and weights are cached per client repository after first download.
+Centralized engine for turning a topic into a vertical short video. Client repositories download the engine through jsDelivr and run it on their own GitHub Actions runners. The local English model runtime and weights are cached per client repository after first download; Arabic jobs skip that download and use the Arabic-native deterministic enhancer.
 
 ## Architecture
 
@@ -10,14 +10,14 @@ Centralized engine for turning a topic into a vertical short video. Client repos
 flowchart TD
  A[Manual workflow_dispatch] --> B[jsDelivr CDN download]
  B --> C[Prompt enhancer]
- C --> D{GitHub Models}
- D -->|Available| E[Structured script]
- D -->|Unavailable| F[Rule-based fallback]
+ C --> D{Language}
+ D -->|English| E[Local Qwen via llama.cpp]
+ D -->|Arabic or model unavailable| F[Rule-based enhancer]
  E --> G[Media factory]
  F --> G
  G --> H[edge-tts]
- G --> I[Pollinations images]
- I -->|Unavailable| J[Pillow gradient frames]
+ G --> I[Pollinations best-effort images]
+ I -->|HTTP error / 402| J[Pillow fallback frames]
  H --> K[ffmpeg + captions]
  J --> K
  K --> L[MP4 + JSON metadata]
@@ -30,20 +30,20 @@ Client workflow template: [templates/client_workflow.yml](templates/client_workf
 
 ## Zero-Cost / Open-Source Stack
 
-- GitHub Actions, local llama.cpp inference and the Apache-2.0 Qwen2.5-1.5B-Instruct Q4_K_M model.
-- edge-tts, Pollinations public image endpoint with Pillow fallback, and ffmpeg.
+- GitHub Actions, local llama.cpp inference and the Apache-2.0 Qwen2.5-1.5B-Instruct Q4_K_M model for English jobs.
+- Arabic uses a deterministic Arabic-native enhancer to avoid the model's observed language mismatch.
 - `edge-tts` for speech synthesis, relying on a public Edge speech service without a guaranteed free-tier SLA.
-- Pollinations public image endpoint with Pillow fallback.
-- ffmpeg and Python open-source packages.
+- Pollinations image endpoint is best-effort only. During validation it returned HTTP 402 on some scenes; RelayMind never pays or supplies a key and switches to Pillow fallback frames.
+- ffmpeg, Pillow and Python open-source packages.
 - Optional Telegram Bot API delivery.
 
-**Important provider change (verified 2026-11-21):** GitHub Models was fully retired on July 30, 2026, including its inference API. It now returns no usable model completion. RelayMind therefore uses local CPU inference through the MIT-licensed llama.cpp runtime and the Apache-2.0 Qwen2.5-1.5B-Instruct Q4_K_M GGUF model. Both runtime and model downloads are SHA-256 verified and cached by Actions. No hosted LLM API key is needed.
+**Important provider change (verified 2026-11-21):** GitHub Models was fully retired on July 30, 2026, including its inference API. RelayMind no longer relies on it. The English local-model path uses the MIT-licensed llama.cpp runtime and Apache-2.0 Qwen2.5-1.5B-Instruct Q4_K_M GGUF model. Runtime and model downloads are SHA-256 verified and cached by Actions. No hosted LLM API key is needed.
 
 ## Minute-Saving Protocol
 
 - `workflow_dispatch` only; no idle cron.
-- Concurrency lock; `timeout-minutes: 4`.
-- pip cache, bounded retries and network timeouts.
+- Concurrency lock; `timeout-minutes: 4` in the client workflow.
+- pip and local-model caching; bounded retries and network timeouts.
 - Four visual scenes and one ffmpeg render.
 - No server, database, paid API or always-on worker.
 
@@ -72,9 +72,9 @@ A phone number alone cannot send WhatsApp messages. It requires an authorized Wh
 
 ## Proof of Concept & Enterprise Customization Readiness
 
-**Status:** offline rendering and live end-to-end fallback have passed GitHub Actions validation. The local Qwen 1.5B path is under live quality validation; rule-based fallback remains available. External image/TTS availability remains best-effort; no SLA or guaranteed sub-four-minute completion is claimed.
+**Status:** 12 regression tests, offline FFmpeg rendering and live Arabic MP4 generation passed GitHub Actions. Arabic uses the deterministic enhancer and Salma neural voice. The English local Qwen path is configured but still requires a dedicated real-output quality check. Pollinations image relevance and free-tier availability are not guaranteed; the tested HTTP 402 path falls back without paid access.
 
-**Changelog:** initial CDN engine, structured prompt fallback, media fallbacks, resolver, Telegram delivery and manual workflow template.
+**Changelog:** centralized CDN engine, multilingual prompt fallback, local Qwen English runtime, media fallbacks, resolver, Telegram delivery and manual workflow template.
 
 ## Intellectual Property & Authorship
 
