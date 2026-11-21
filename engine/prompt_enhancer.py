@@ -77,14 +77,32 @@ def _local_model(topic, language):
     prompt = (f"<|im_start|>system\\n{system}<|im_end|>\\n"
               f"<|im_start|>user\\nLanguage: {language}. Idea: {topic}<|im_end|>\\n"
               "<|im_start|>assistant\\n")
+    schema = json.dumps({
+        "type": "object",
+        "properties": {
+            "title": {"type": "string"},
+            "hook": {"type": "string"},
+            "narration_script": {"type": "string"},
+            "visual_prompts": {"type": "array", "items": {"type": "string"},
+                               "minItems": 4, "maxItems": 4},
+            "hashtags": {"type": "array", "items": {"type": "string"}, "maxItems": 12}
+        },
+        "required": ["title", "hook", "narration_script", "visual_prompts", "hashtags"],
+        "additionalProperties": False
+    })
     result = subprocess.run(
-        [cli, "-m", model, "-p", prompt, "-n", "700", "--temp", "0.65",
-         "--top-p", "0.85", "--ctx-size", "4096", "--threads", "2",
-         "--no-display-prompt", "--simple-io", "--no-warmup"],
+        [cli, "-m", model, "-p", prompt, "-n", "480", "--temp", "0.65",
+         "--top-p", "0.85", "--ctx-size", "4096", "--threads", "4",
+         "--json-schema", schema, "--no-display-prompt", "--simple-io", "--no-warmup"],
         capture_output=True, text=True, timeout=50, check=False)
     if result.returncode:
         raise RuntimeError(f"llama-cli exited with code {result.returncode}")
-    return _normalise(_parse(result.stdout), language, topic, "local_qwen")
+    try:
+        parsed = _parse(result.stdout)
+    except ValueError as exc:
+        print(f"[prompt] local Qwen returned invalid JSON: {exc}; output={result.stdout[:500]!r}")
+        raise
+    return _normalise(parsed, language, topic, "local_qwen")
 
 
 def enhance_prompt(topic, lang="auto"):
@@ -97,5 +115,5 @@ def enhance_prompt(topic, lang="auto"):
         if generated:
             return generated
     except (OSError, subprocess.SubprocessError, TimeoutError, ValueError, TypeError) as exc:
-        print(f"[prompt] local Qwen unavailable: {type(exc).__name__}")
+        print(f"[prompt] local Qwen unavailable: {type(exc).__name__}: {str(exc)[:180]}")
     return fallback(topic, language)
