@@ -125,14 +125,17 @@ def test_local_qwen_model_is_used_without_remote_api(monkeypatch, tmp_path):
         ],
         "hashtags": ["#قهوة", "#ريلز"]
     }
-    monkeypatch.setattr(
-        prompt_enhancer.subprocess, "run",
-        lambda *args, **kwargs: SimpleNamespace(
+    captured = []
+    def fake_run(*args, **kwargs):
+        captured.append(args[0])
+        return SimpleNamespace(
             returncode=0, stdout=json.dumps(expected, ensure_ascii=False), stderr=""
         )
-    )
+    monkeypatch.setattr(prompt_enhancer.subprocess, "run", fake_run)
 
     brief = enhance_prompt("قهوة عربية", "ar")
+    assert "-st" in captured[0]
+    assert "--json-schema" in captured[0]
     assert brief["source"] == "local_qwen"
     assert brief["title"] == expected["title"]
     assert len(brief["visual_prompts"]) == 4
