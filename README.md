@@ -30,14 +30,14 @@ Client workflow template: [templates/client_workflow.yml](templates/client_workf
 
 ## Zero-Cost / Open-Source Stack
 
-- GitHub Actions, local llama.cpp inference and the Apache-2.0 Qwen2.5-0.5B-Instruct Q4_K_M model.
+- GitHub Actions, local llama.cpp inference and the Apache-2.0 Qwen2.5-1.5B-Instruct Q4_K_M model.
 - edge-tts, Pollinations public image endpoint with Pillow fallback, and ffmpeg.
 - `edge-tts` for speech synthesis, relying on a public Edge speech service without a guaranteed free-tier SLA.
 - Pollinations public image endpoint with Pillow fallback.
 - ffmpeg and Python open-source packages.
 - Optional Telegram Bot API delivery.
 
-**Important provider change (verified 2026-11-21):** GitHub Models was fully retired on July 30, 2026, including its inference API. It now returns no usable model completion. RelayMind therefore uses local CPU inference through the MIT-licensed llama.cpp runtime and the Apache-2.0 Qwen2.5-0.5B-Instruct Q4_K_M GGUF model. Both runtime and model downloads are SHA-256 verified and cached by Actions. No hosted LLM API key is needed.
+**Important provider change (verified 2026-11-21):** GitHub Models was fully retired on July 30, 2026, including its inference API. It now returns no usable model completion. RelayMind therefore uses local CPU inference through the MIT-licensed llama.cpp runtime and the Apache-2.0 Qwen2.5-1.5B-Instruct Q4_K_M GGUF model. Both runtime and model downloads are SHA-256 verified and cached by Actions. No hosted LLM API key is needed.
 
 ## Minute-Saving Protocol
 
@@ -72,7 +72,7 @@ A phone number alone cannot send WhatsApp messages. It requires an authorized Wh
 
 ## Proof of Concept & Enterprise Customization Readiness
 
-**Status:** offline rendering and the live end-to-end fallback path have passed GitHub Actions validation. Local Qwen inference is included; live model output is validated separately from the offline renderer. External image/TTS availability remains best-effort; no SLA or guaranteed sub-four-minute completion is claimed.
+**Status:** offline rendering and live end-to-end fallback have passed GitHub Actions validation. The local Qwen 1.5B path is under live quality validation; rule-based fallback remains available. External image/TTS availability remains best-effort; no SLA or guaranteed sub-four-minute completion is claimed.
 
 **Changelog:** initial CDN engine, structured prompt fallback, media fallbacks, resolver, Telegram delivery and manual workflow template.
 
