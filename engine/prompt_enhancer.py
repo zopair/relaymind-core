@@ -74,9 +74,7 @@ def _local_model(topic, language):
               "Write a powerful first-two-second hook, useful body and natural CTA. "
               "Return exactly four cinematic vertical 9:16 scene prompts, no text or logos. "
               "Avoid fabricated facts. Keep narration concise.")
-    prompt = (f"<|im_start|>system\\n{system}<|im_end|>\\n"
-              f"<|im_start|>user\\nLanguage: {language}. Idea: {topic}<|im_end|>\\n"
-              "<|im_start|>assistant\\n")
+    prompt = f"Language: {language}. Idea: {topic}"
     schema = json.dumps({
         "type": "object",
         "properties": {
@@ -91,9 +89,10 @@ def _local_model(topic, language):
         "additionalProperties": False
     })
     result = subprocess.run(
-        [cli, "-m", model, "-p", prompt, "-n", "480", "--temp", "0.65",
-         "--top-p", "0.85", "--ctx-size", "4096", "--threads", "4",
-         "--json-schema", schema, "--no-display-prompt", "--simple-io", "--no-warmup"],
+        [cli, "-m", model, "--system-prompt", system, "-p", prompt, "-n", "480",
+         "--temp", "0.65", "--top-p", "0.85", "--ctx-size", "4096", "--threads", "4",
+         "--json-schema", schema, "--no-display-prompt", "--simple-io",
+         "--no-show-timings", "--no-warmup", "-st"],
         capture_output=True, text=True, timeout=50, check=False)
     if result.returncode:
         raise RuntimeError(f"llama-cli exited with code {result.returncode}")
