@@ -75,3 +75,34 @@ This review is a shared workspace for several independent AI reviewers (for exam
 - Executive verdict:
 - Confidence (high / medium / low):
 - Key assumptions:
+
+
+## Mandatory execution discipline — practical research only
+
+This section overrides any tendency toward open-ended debate or unnecessary technical expansion. The goal is a working MVP that obeys the constraints below, not the most elaborate architecture.
+
+### Non-negotiable rules for every reviewer
+1. **No debate without a decision:** raise an objection only when it changes feasibility, cost, performance, policy compliance, or implementation. State the evidence, impact, and a practical resolution briefly.
+2. **No over-engineering:** do not add services, agents, frameworks, databases, abstraction layers, or infrastructure unless a demonstrated MVP requirement needs them. Prefer the smallest working design.
+3. **Respect the project constraints:** GitHub-first; free and open-source where feasible; no mandatory company-funded hosting, inference, or compute; user-owned GitHub repository, credentials, quotas, and resources (BYOC/BYOK). Be explicit about unavoidable limits and costs.
+4. **Research for implementation:** prioritize maintained, real repositories and official documentation. For each proposed component, provide its exact URL, license, maintenance evidence, what it replaces, integration effort, and a concrete test to prove it works. Never invent verification.
+5. **Every recommendation must be actionable:** describe the smallest implementation step, its dependency, acceptance check, and fallback if blocked. Prefer one recommended option over a long list.
+6. **Replace blockers with workable alternatives:** explain the constraint briefly, then propose the simplest compliant workaround. Do not stop at criticism.
+7. **Keep MVP scope tight:** label non-essential capabilities as “Later”; do not let them expand the first deliverable.
+8. **Separate facts from assumptions:** cite official evidence for current GitHub/provider limits, pricing, policies, and API availability. Mark anything not verified as unverified.
+9. **Avoid repeated analysis:** do not restate points already covered unless adding new evidence or changing the decision. Keep the report concise and decision-oriented.
+
+### Required practical output
+For each major recommendation, use this compact format:
+- **Decision:** one clear choice.
+- **Evidence:** official source or real repository, with license where applicable.
+- **Implementation:** smallest concrete step.
+- **Validation:** a reproducible test and expected result.
+- **Constraint/fallback:** relevant cost, quota, policy limitation, or simpler alternative.
+
+End with:
+- **Build now:** the smallest useful MVP scope.
+- **Defer:** features that are not required to prove the MVP.
+- **First executable task:** one specific task that can be started immediately.
+
+A technically impressive proposal that violates the project's cost, ownership, simplicity, or execution constraints is not an acceptable recommendation.
