@@ -66,7 +66,7 @@ def fallback(topic, lang):
 
 
 def _parse(text):
-    text = re.sub(r"^\\s*```(?:json)?\\s*|\\s*```\\s*$", "", text.strip(), flags=re.I)
+    text = re.sub(r"^\s*```(?:json)?\s*|\s*```\s*$", "", text.strip(), flags=re.I)
     left, right = text.find("{"), text.rfind("}")
     if left < 0 or right <= left:
         raise ValueError("No JSON object in model response")
