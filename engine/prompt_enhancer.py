@@ -105,6 +105,8 @@ def _normalise(obj, language, topic, source):
 
 
 def _local_model(topic, language):
+    if language == "ar":
+        return None
     cli = os.getenv("RELAYMIND_LLAMA_CLI", "").strip()
     model = os.getenv("RELAYMIND_MODEL_PATH", "").strip()
     if not cli or not model or not Path(cli).is_file() or not Path(model).is_file():
