@@ -74,25 +74,15 @@ def _local_model(topic, language):
               "Write a powerful first-two-second hook, useful body and natural CTA. "
               "Return exactly four cinematic vertical 9:16 scene prompts, no text or logos. "
               "Avoid fabricated facts. Keep narration concise.")
-    prompt = f"Language: {language}. Idea: {topic}"
-    schema = json.dumps({
-        "type": "object",
-        "properties": {
-            "title": {"type": "string"},
-            "hook": {"type": "string"},
-            "narration_script": {"type": "string"},
-            "visual_prompts": {"type": "array", "items": {"type": "string"},
-                               "minItems": 4, "maxItems": 4},
-            "hashtags": {"type": "array", "items": {"type": "string"}, "maxItems": 12}
-        },
-        "required": ["title", "hook", "narration_script", "visual_prompts", "hashtags"],
-        "additionalProperties": False
-    })
+    prompt = (f"Create a short-form video package in {language} for this idea: {topic}. "
+              "Return ONLY one JSON object. It must have exactly these keys: title, hook, "
+              "narration_script, visual_prompts, hashtags. visual_prompts must contain exactly "
+              "four strings describing cinematic vertical 9:16 scenes. hashtags must be an array "
+              "of strings. Do not add markdown or explanations.")
     result = subprocess.run(
         [cli, "-m", model, "--system-prompt", system, "-p", prompt, "-n", "480",
          "--temp", "0.65", "--top-p", "0.85", "--ctx-size", "4096", "--threads", "4",
-         "--json-schema", schema, "--no-display-prompt", "--simple-io",
-         "--no-show-timings", "--no-warmup", "-st"],
+         "--no-display-prompt", "--simple-io", "--no-show-timings", "--no-warmup", "-st"],
         capture_output=True, text=True, timeout=50, check=False)
     if result.returncode:
         raise RuntimeError(f"llama-cli exited with code {result.returncode}")
