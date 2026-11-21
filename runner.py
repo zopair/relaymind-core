@@ -29,7 +29,7 @@ def send_telegram(video, caption):
     req = urllib.request.Request(f"https://api.telegram.org/bot{token}/sendVideo",
         data=b"".join(parts), headers={"Content-Type": f"multipart/form-data; boundary={boundary}"})
     try:
-        with urllib.request.urlopen(req, timeout=22) as res:
+        with urllib.request.urlopen(req, timeout=12) as res:
             return bool(json.loads(res.read().decode()).get("ok"))
     except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, ValueError) as exc:
         print(f"[telegram] send failed: {type(exc).__name__}")
