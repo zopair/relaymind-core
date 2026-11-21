@@ -98,3 +98,39 @@ def test_offline_render_produces_valid_vertical_mp4(tmp_path, monkeypatch):
 
 def test_invalid_endpoint_fails_closed():
     assert check_url("not-a-valid-url") is False
+
+
+
+def test_local_qwen_model_is_used_without_remote_api(monkeypatch, tmp_path):
+    from types import SimpleNamespace
+    from engine import prompt_enhancer
+
+    cli = tmp_path / "llama-cli"
+    model = tmp_path / "model.gguf"
+    cli.write_text("binary-placeholder")
+    model.write_bytes(b"model-placeholder")
+    monkeypatch.setenv("RELAYMIND_LLAMA_CLI", str(cli))
+    monkeypatch.setenv("RELAYMIND_MODEL_PATH", str(model))
+    monkeypatch.delenv("GITHUB_TOKEN", raising=False)
+
+    expected = {
+        "title": "قهوة عربية",
+        "hook": "هل تعرف سر القهوة؟",
+        "narration_script": "هل تعرف سر القهوة؟ جرّبها اليوم.",
+        "visual_prompts": [
+            "مشهد 1 عمودي 9:16", "مشهد 2 عمودي 9:16",
+            "مشهد 3 عمودي 9:16", "مشهد 4 عمودي 9:16"
+        ],
+        "hashtags": ["#قهوة", "#ريلز"]
+    }
+    monkeypatch.setattr(
+        prompt_enhancer.subprocess, "run",
+        lambda *args, **kwargs: SimpleNamespace(
+            returncode=0, stdout=json.dumps(expected, ensure_ascii=False), stderr=""
+        )
+    )
+
+    brief = enhance_prompt("قهوة عربية", "ar")
+    assert brief["source"] == "local_qwen"
+    assert brief["title"] == expected["title"]
+    assert len(brief["visual_prompts"]) == 4
