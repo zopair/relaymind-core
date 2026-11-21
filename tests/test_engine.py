@@ -168,3 +168,13 @@ def test_local_model_english_output_is_rejected_for_arabic_topic(monkeypatch, tm
     brief = enhance_prompt("قهوة عربية", "ar")
     assert brief["source"] == "rule_fallback"
     assert re.search(r"[\u0600-\u06ff]", brief["narration_script"])
+
+
+def test_coffee_fallback_has_relevant_scenes_and_arabic_voiceover():
+    brief = fallback("قهوة عربية: من الحبوب إلى الفنجان", "ar")
+    assert "القهوة العربية" in brief["title"]
+    assert "الضيافة" in brief["narration_script"]
+    assert "coffee cherries" in brief["visual_prompts"][0]
+    assert "dallah" in brief["visual_prompts"][3]
+    assert all("9:16" in prompt for prompt in brief["visual_prompts"])
+    assert all(tag.startswith("#") for tag in brief["hashtags"])
