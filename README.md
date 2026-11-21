@@ -72,7 +72,7 @@ A phone number alone cannot send WhatsApp messages. It requires an authorized Wh
 
 ## Proof of Concept & Enterprise Customization Readiness
 
-**Status:** offline rendering and the live end-to-end fallback path have passed GitHub Actions validation. Local Qwen inference is being added after GitHub Models retirement. External image/TTS availability remains best-effort; no SLA or guaranteed sub-four-minute completion is claimed.
+**Status:** offline rendering and the live end-to-end fallback path have passed GitHub Actions validation. Local Qwen inference is included; live model output is validated separately from the offline renderer. External image/TTS availability remains best-effort; no SLA or guaranteed sub-four-minute completion is claimed.
 
 **Changelog:** initial CDN engine, structured prompt fallback, media fallbacks, resolver, Telegram delivery and manual workflow template.
 
