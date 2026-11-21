@@ -12,6 +12,7 @@ concurrency:
 
 permissions:
   contents: read
+  models: read
 
 jobs:
   tests:
@@ -35,7 +36,13 @@ jobs:
         run: python -m compileall -q runner.py engine tests
       - name: Run regression and offline-render tests
         run: pytest -q
-      - name: Upload offline render
+      - name: Generate live Arabic end-to-end sample
+        env:
+          TOPIC: "قهوة عربية: من الحبوب إلى الفنجان"
+          LANG: ar
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python runner.py
+      - name: Upload offline and live renders
         if: always()
         uses: actions/upload-artifact@v4
         with:
