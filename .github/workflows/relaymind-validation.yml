@@ -1,0 +1,45 @@
+name: RelayMind Validation
+
+on:
+  push:
+    branches:
+      - "test/**"
+  workflow_dispatch:
+
+concurrency:
+  group: relaymind-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --disable-pip-version-check -r requirements.txt -r requirements-dev.txt
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+      - name: Compile Python modules
+        run: python -m compileall -q runner.py engine tests
+      - name: Run regression and offline-render tests
+        run: pytest -q
+      - name: Upload offline render
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relaymind-validation-output
+          path: output/
+          if-no-files-found: ignore
+          retention-days: 1
