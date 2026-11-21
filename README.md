@@ -2,7 +2,7 @@
 
 ![CDN](https://img.shields.io/badge/architecture-CDN--first-111827) ![Python](https://img.shields.io/badge/python-3.11-blue) ![Cost](https://img.shields.io/badge/stack-free%20tiers%20%2B%20open%20source-success)
 
-Centralized engine for turning a topic into a vertical short video. Client repositories download the engine through jsDelivr and run it on their own GitHub Actions runners.
+Centralized engine for turning a topic into a vertical short video. Client repositories download the engine through jsDelivr and run it on their own GitHub Actions runners. The local model runtime and weights are cached per client repository after first download.
 
 ## Architecture
 
@@ -30,13 +30,14 @@ Client workflow template: [templates/client_workflow.yml](templates/client_workf
 
 ## Zero-Cost / Open-Source Stack
 
-- GitHub Actions and GitHub Models free-tier access, subject to eligibility, quotas and model availability.
+- GitHub Actions, local llama.cpp inference and the Apache-2.0 Qwen2.5-0.5B-Instruct Q4_K_M model.
+- edge-tts, Pollinations public image endpoint with Pillow fallback, and ffmpeg.
 - `edge-tts` for speech synthesis, relying on a public Edge speech service without a guaranteed free-tier SLA.
 - Pollinations public image endpoint with Pillow fallback.
 - ffmpeg and Python open-source packages.
 - Optional Telegram Bot API delivery.
 
-**GitHub Models endpoint:** `https://models.github.ai/inference/chat/completions`. The previously specified Azure inference endpoint was retired in October 2025. Workflows request `models: read` for the Actions `GITHUB_TOKEN`.
+**Important provider change (verified 2026-11-21):** GitHub Models was fully retired on July 30, 2026, including its inference API. It now returns no usable model completion. RelayMind therefore uses local CPU inference through the MIT-licensed llama.cpp runtime and the Apache-2.0 Qwen2.5-0.5B-Instruct Q4_K_M GGUF model. Both runtime and model downloads are SHA-256 verified and cached by Actions. No hosted LLM API key is needed.
 
 ## Minute-Saving Protocol
 
@@ -58,7 +59,8 @@ Copy `templates/client_workflow.yml` to a client repository as `.github/workflow
 |---|---|
 | `TOPIC` | Required user idea |
 | `LANG` | `auto`, `ar`, or `en` |
-| `GITHUB_TOKEN` | GitHub Models access; rule fallback works without it |
+| `RELAYMIND_LLAMA_CLI` | Path to the verified local llama.cpp CLI binary |
+| `RELAYMIND_MODEL_PATH` | Path to the verified Qwen GGUF model |
 | `TG_TOKEN`, `TG_CHAT_ID` | Optional Telegram delivery |
 | `WA_PHONE` | Reserved only; WhatsApp delivery is not implemented |
 
@@ -70,7 +72,7 @@ A phone number alone cannot send WhatsApp messages. It requires an authorized Wh
 
 ## Proof of Concept & Enterprise Customization Readiness
 
-**Status:** functional MVP foundation. External endpoint behavior and end-to-end rendering require validation in a real Actions run. No SLA or guaranteed sub-four-minute completion is claimed.
+**Status:** offline rendering and the live end-to-end fallback path have passed GitHub Actions validation. Local Qwen inference is being added after GitHub Models retirement. External image/TTS availability remains best-effort; no SLA or guaranteed sub-four-minute completion is claimed.
 
 **Changelog:** initial CDN engine, structured prompt fallback, media fallbacks, resolver, Telegram delivery and manual workflow template.
 
