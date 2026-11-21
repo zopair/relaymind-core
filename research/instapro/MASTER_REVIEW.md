@@ -44,3 +44,34 @@ H. Give a phased MVP roadmap that avoids over-engineering.
 
 ## Review target
 This is a research brief only. Do not modify production code or merge changes.
+
+
+## Multi-model collaboration protocol (mandatory)
+This review is a shared workspace for several independent AI reviewers (for example Claude, Gemini, Grok, Perplexity, and ChatGPT). The human coordinator may paste each model's response into this same repository/branch so every reviewer can inspect the others' work.
+
+### Instructions to every reviewer
+1. Start by writing your own independent review. Do not simply agree with earlier reviewers.
+2. Read the other reviewers' reports in this folder before writing your final position.
+3. Explicitly identify:
+   - points where you agree, with reasons;
+   - points where you disagree, with evidence or a concrete technical argument;
+   - important omissions or risks nobody has raised;
+   - claims that need verification and the source needed to verify them.
+4. Challenge recommendations constructively. Do not manufacture consensus. If evidence is insufficient, label the point unresolved.
+5. After reviewing others, publish a short **Round 2 — Cross-Review** section in your own report. State whether your original recommendation changed and why.
+6. If you cannot access repository files other than this brief, say so clearly. Do not pretend to have read other models' reports. Ask the coordinator to provide the report links or pasted contents.
+7. Do not edit or overwrite another model's report. Create a separate file named `reports/<model-name>.md`; use a recognizable provider/model label in the filename.
+8. Keep all credentials, API keys, OAuth secrets, and private user data out of reports and commits.
+
+### Shared discussion sequence
+- Round 1: each model independently reviews this brief and commits its report under `reports/`.
+- Round 2: each model reads the other available reports and adds a cross-review section to its own report (or creates `reports/<model-name>-cross-review.md` if editing is not possible).
+- Synthesis: the coordinator asks ChatGPT to compare all reports, identify consensus and disagreements, verify factual claims, and produce a decision log. No model is treated as the authority by default.
+
+### Suggested report header
+- Provider/model:
+- Review date:
+- Evidence links:
+- Executive verdict:
+- Confidence (high / medium / low):
+- Key assumptions:
