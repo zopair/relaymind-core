@@ -60,13 +60,29 @@ jobs:
           curl --fail --silent --show-error --location --max-time 15 "$BASE/engine/resolver.py" -o engine/resolver.py
           python -m py_compile runner.py engine/*.py
 
+      - name: Detect whether local English model is needed
+        id: model-gate
+        env:
+          TOPIC: ${{ inputs.topic }}
+          LANG: ${{ inputs.language }}
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import os, re
+          lang = os.getenv("LANG", "auto")
+          topic = os.getenv("TOPIC", "")
+          use_model = lang == "en" or (lang == "auto" and not re.search(r"[\\u0600-\\u06ff]", topic))
+          print(f"needs_model={'true' if use_model else 'false'}")
+          PY
+
       - name: Cache local Qwen inference runtime
+        if: steps.model-gate.outputs.needs_model == 'true'
         uses: actions/cache@v4
         with:
           path: .relaymind
           key: relaymind-qwen25-15b-q4km-llama-b12244-${{ runner.os }}-${{ runner.arch }}-v1
 
       - name: Provision verified local Qwen runtime
+        if: steps.model-gate.outputs.needs_model == 'true'
         shell: bash
         run: |
           set -euo pipefail
