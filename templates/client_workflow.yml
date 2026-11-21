@@ -70,7 +70,7 @@ jobs:
           import os, re
           lang = os.getenv("LANG", "auto")
           topic = os.getenv("TOPIC", "")
-          use_model = lang == "en" or (lang == "auto" and not re.search(r"[\\u0600-\\u06ff]", topic))
+          use_model = lang == "en" or (lang == "auto" and not re.search(r"[\u0600-\u06ff]", topic))
           print(f"needs_model={'true' if use_model else 'false'}")
           PY
 
